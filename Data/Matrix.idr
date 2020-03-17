@@ -2,12 +2,9 @@ module Data.Matrix
 
 import Data.Vect
 
-%default total
+--%default total
+%access public export
 
-
-||| this alias trick doesn't work
--- NegNum : Type -> Type
--- NegNum a = (Num a, Neg a)
 
 Matrix : Nat -> Nat -> Type -> Type
 Matrix n m a = Vect n (Vect m a)
@@ -44,10 +41,27 @@ submatrix r c = deleteRow r . deleteCol c
     deleteCol c = map (deleteAt c)
 
 
+indices : (n : Nat) -> Vect n (Fin n)
+indices Z = []
+indices (S k) = FZ :: (map FS $ indices k)
+
+
 det2 : Neg a => Matrix 2 2 a -> a
 det2 [[a, b], [c, d]] = a * d - b * c
---
--- determinant : (Num a, Neg a) => Matrix (S (S n)) (S (S n)) a -> a
--- determinant {n} m = case n of
---   Z => det2 m
---   (S k) => ?rhs
+
+
+mutual
+  ||| 2x2 이상
+  det : Neg a => Matrix (2 + n) (2 + n) a -> a
+  det {n} m = case n of
+                   Z     => det2 m
+                   (S k) => sum $ map (\c => at 0 c m * cofactor 0 c m) $ indices (3 + k)
+
+
+  ||| not total due to mod (Integral)
+  cofactor : Neg a => Fin (3 + n) -> Fin (3 + n) -> Matrix (3 + n) (3 + n) a -> a
+  cofactor r c m = let minor = det (submatrix r c m)
+                       sign = case mod (finToInteger r + finToInteger c) 2 of
+                                   0 => (* 1)
+                                   1 => (* -1)
+                    in sign minor

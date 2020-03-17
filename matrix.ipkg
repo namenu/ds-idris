@@ -1,0 +1,7 @@
+package matrix
+
+--sourcedir = src
+modules = Data.Matrix
+        , Test.Matrix
+
+tests = Test.Matrix.testDet
