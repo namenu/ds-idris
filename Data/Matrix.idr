@@ -6,8 +6,24 @@ import Data.Vect
 %access public export
 
 
+-- Vect helpers
+
+indices : (n : Nat) -> Vect n (Fin n)
+indices Z = []
+indices (S k) = FZ :: (map FS $ indices k)
+
+zipi : Vect n a -> Vect n (Fin n, a)
+zipi {n} m = zip (indices n) m
+
+
+-- Constructor
+
 Matrix : Nat -> Nat -> Type -> Type
 Matrix n m a = Vect n (Vect m a)
+
+
+Mat4 : Type
+Mat4 = Matrix 4 4 Double
 
 
 at : Fin n -> Fin m -> Matrix n m a -> a
@@ -41,11 +57,6 @@ submatrix r c = deleteRow r . deleteCol c
     deleteCol c = map (deleteAt c)
 
 
-indices : (n : Nat) -> Vect n (Fin n)
-indices Z = []
-indices (S k) = FZ :: (map FS $ indices k)
-
-
 det2 : Neg a => Matrix 2 2 a -> a
 det2 [[a, b], [c, d]] = a * d - b * c
 
@@ -65,3 +76,29 @@ mutual
                                    0 => (* 1)
                                    1 => (* -1)
                     in sign minor
+
+
+invertible : Double -> Matrix (S (S n)) (S (S n)) Double -> Bool
+invertible eps m = det m >= eps
+
+
+-- TODO: handle not invertible case
+-- TODO: make it work for any size
+inverse : Mat4 -> Mat4
+inverse m = let d = det m
+             in map (\(i, row) =>
+                  map (\(j, v) => let c = cofactor j i m
+                                   in c / d)
+                  (zipi row))
+                (zipi m)
+
+
+
+-- test
+
+eq : Double -> Matrix n m Double -> Matrix n m Double -> Bool
+eq eps a b = let zs = zipWith (\l, r => abs (l - r)) (concat a) (concat b)
+              in not $ elemBy (<) eps zs
+
+m1 : Mat4
+m1 = [[1,2,3,4],[5,6,7,8],[9,8,7,6],[5,4,3,2]]

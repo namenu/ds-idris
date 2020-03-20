@@ -5,3 +5,4 @@ modules = Data.Matrix
         , Test.Matrix
 
 tests = Test.Matrix.testDet
+      , Test.Matrix.testInv
