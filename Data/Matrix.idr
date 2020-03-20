@@ -1,6 +1,6 @@
 module Data.Matrix
 
-import Data.Vect
+import public Data.Vect
 
 --%default total
 %access public export

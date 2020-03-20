@@ -2,6 +2,8 @@ module Tuple
 
 import Const
 
+%access export
+
 record Tuple where
   constructor MkTuple
   x, y, z, w : Double
