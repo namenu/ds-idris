@@ -4,6 +4,7 @@ import Const
 
 %access export
 
+public export
 record Tuple where
   constructor MkTuple
   x, y, z, w : Double
@@ -39,7 +40,7 @@ neg a = MkTuple (- x a) (- y a) (- z a) (- x a)
 (/) a s = MkTuple (x a / s) (y a / s) (z a / s) (w a / s)
 
 mag : Tuple -> Double
-mag (MkTuple x y z w) = with Doubles sqrt (pow x 2 + pow y 2 + pow z 2 + pow w 2)
+mag (MkTuple x y z w) = with Doubles sqrt (x * x + y * y + z * z + w * w)
 
 normalize : Tuple -> Tuple
 normalize a = a / (mag a)

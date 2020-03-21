@@ -1,6 +1,8 @@
 module Transform
 
-import Data.Matrix
+import public Matrix
+
+%access export
 
 translation : Double -> Double -> Double -> Mat4
 translation x y z = [[1, 0, 0, x],

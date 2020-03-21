@@ -6,7 +6,7 @@ import Data.Vect
 %access export  -- to make the test functions visible
 
 -- "Test framework"
-assert : String -> Bool -> IO()
+assert : String -> Bool -> IO ()
 assert name b = do
   putStr name
   if b then putStrLn ": Passed"

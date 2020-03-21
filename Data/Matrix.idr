@@ -22,10 +22,6 @@ Matrix : Nat -> Nat -> Type -> Type
 Matrix n m a = Vect n (Vect m a)
 
 
-Mat4 : Type
-Mat4 = Matrix 4 4 Double
-
-
 at : Fin n -> Fin m -> Matrix n m a -> a
 at r c = index c . index r
 
@@ -40,8 +36,8 @@ dotProduct : (Num a) => Vect n a -> Vect n a -> a
 dotProduct x y = sum $ zipWith (*) x y
 
 
-mult : Num a => Matrix n k a -> Matrix k m a -> Matrix n m a
-mult m1 m2 = map (vectMult m2) m1
+(*) : Num a => Matrix n k a -> Matrix k m a -> Matrix n m a
+(*) m1 m2 = map (vectMult m2) m1
   where
     vectMult : Num a => Matrix n m a -> Vect n a -> Vect m a
     vectMult m v = map (dotProduct v) (transpose m)
@@ -80,25 +76,3 @@ mutual
 
 invertible : Double -> Matrix (S (S n)) (S (S n)) Double -> Bool
 invertible eps m = det m >= eps
-
-
--- TODO: handle not invertible case
--- TODO: make it work for any size
-inverse : Mat4 -> Mat4
-inverse m = let d = det m
-             in map (\(i, row) =>
-                  map (\(j, v) => let c = cofactor j i m
-                                   in c / d)
-                  (zipi row))
-                (zipi m)
-
-
-
--- test
-
-eq : Double -> Matrix n m Double -> Matrix n m Double -> Bool
-eq eps a b = let zs = zipWith (\l, r => abs (l - r)) (concat a) (concat b)
-              in not $ elemBy (<) eps zs
-
-m1 : Mat4
-m1 = [[1,2,3,4],[5,6,7,8],[9,8,7,6],[5,4,3,2]]
