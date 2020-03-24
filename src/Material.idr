@@ -27,7 +27,7 @@ lighting (MkLight light_position light_intensity)
          normalv
          (MkMaterial mat_color mat_ambient mat_diffuse mat_specular mat_shininess)
   = let effective_color = mat_color * light_intensity
-        lightv = normalize (light_position - point)
+        lightv = normalize (light_position <-> point)
         ambient = effective_color *. mat_ambient
 
         light_dot_normal = dot lightv normalv

@@ -1,6 +1,6 @@
 module Ray
 
-import public Tuple
+import Tuple
 import Matrix
 
 %access export
@@ -12,7 +12,7 @@ record Ray where
 
 
 position : Double -> Ray -> Tuple
-position t (MkRay origin direction) = origin + direction * t
+position t (MkRay origin direction) = origin <+> (t <#> direction)
 
 transform : Mat4 -> Ray -> Ray
 transform m (MkRay origin direction) =

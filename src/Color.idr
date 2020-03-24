@@ -1,6 +1,7 @@
 module Color
 
 import Const
+import Control.Algebra
 
 %access export
 
@@ -29,13 +30,15 @@ Eq Color where
 (*) (MkColor r1 g1 b1) (MkColor r2 g2 b2) = MkColor (r1 * r2) (g1 * g2) (b1 * b2)
 
 
--- Colorspace
+Semigroup Color where
+  (<+>) = (+)
 
-infixl 5 .*
+Monoid Color where
+  neutral = black
+
+-- action over Colorspace
+
 infixl 5 *.
-
-(.*) : Double -> Color -> Color
-(.*) v (MkColor r g b) = MkColor (v * r) (v * g) (v * b)
 
 (*.) : Color -> Double -> Color
 (*.) (MkColor r g b) v = MkColor (r * v) (g * v) (b * v)

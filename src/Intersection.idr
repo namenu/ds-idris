@@ -1,6 +1,7 @@
 module Intersection
 
 import Ray
+import Tuple
 import Sphere
 import Matrix
 
@@ -18,7 +19,7 @@ intersect r s = let ray2 = transform (inverse (transform s)) r
                     where
                       intersectRev : Ray -> Maybe (Intersection, Intersection)
                       intersectRev (MkRay r_origin r_direction) =
-                        let sphere_to_ray = r_origin - point 0 0 0
+                        let sphere_to_ray = r_origin <-> point 0 0 0
 
                             a = dot r_direction r_direction
                             b = 2 * dot r_direction sphere_to_ray

@@ -1,11 +1,19 @@
 package matrix
 
 sourcedir = src
+
+modules = Canvas
+        , Color
+        , Intersection
+        , Light
+        , Material
+        , Matrix
+        , Ray
+        , Sphere
+        , Transform
+        , Tuple
+
 {-
-
-modules = Data.Matrix
-        , Test.Matrix
-
 tests = Test.Matrix.testDet
       , Test.Matrix.testInv
 -}
