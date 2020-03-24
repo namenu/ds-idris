@@ -53,3 +53,15 @@ cross (MkTuple ax ay az aw) (MkTuple bx by bz bw) =
   vector (ay * bz - az * by)
          (az * bx - ax * bz)
          (ax * by - ay * bx)
+
+
+reflect : Tuple -> Tuple -> Tuple
+reflect normal inv = let n = normal * (2 * dot inv normal)
+                      in inv - n
+
+{-
+reflectTest : Bool
+reflectTest = let v = vector 0 (-1) 0
+                  n = vector (sqrt 2 / 2) (sqrt 2 / 2) 0
+               in reflect n v == vector 1 0 0
+-}
