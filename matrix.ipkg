@@ -1,8 +1,13 @@
 package matrix
 
---sourcedir = src
+sourcedir = src
+{-
+
 modules = Data.Matrix
         , Test.Matrix
 
 tests = Test.Matrix.testDet
       , Test.Matrix.testInv
+-}
+
+opts = "-p contrib"

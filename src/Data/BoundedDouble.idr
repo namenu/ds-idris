@@ -2,6 +2,7 @@ module BoundedDouble
 
 import Data.So
 
+||| 대수적 성질: (M, +, 0) Monoid, (M, *, 1) Monoid
 data BoundedDouble : (a, b : Double) -> Type where
     MkBoundedDouble : (x : Double)
                       -> {auto rightSize : So (a <= b)}

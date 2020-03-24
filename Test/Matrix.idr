@@ -1,6 +1,6 @@
 module Test.Matrix
 
-import Data.Matrix
+import Matrix
 import Data.Vect
 
 %access export  -- to make the test functions visible
