@@ -1,8 +1,10 @@
 module Data.Matrix
 
 import public Data.Vect
+import Data.Mod2
+import Data.Bits
 
---%default total
+%default total
 %access public export
 
 
@@ -53,24 +55,23 @@ submatrix r c = deleteRow r . deleteCol c
     deleteCol c = map (deleteAt c)
 
 
+private
 det2 : Neg a => Matrix 2 2 a -> a
 det2 [[a, b], [c, d]] = a * d - b * c
 
 
 mutual
-  ||| 2x2 이상
+  ||| determinant
   det : Neg a => Matrix (2 + n) (2 + n) a -> a
   det {n} m = case n of
                    Z     => det2 m
                    (S k) => sum $ map (\c => at 0 c m * cofactor 0 c m) $ indices (3 + k)
 
-
-  ||| not total due to mod (Integral)
   cofactor : Neg a => Fin (3 + n) -> Fin (3 + n) -> Matrix (3 + n) (3 + n) a -> a
   cofactor r c m = let minor = det (submatrix r c m)
-                       sign = case mod (finToInteger r + finToInteger c) 2 of
-                                   0 => (* 1)
-                                   1 => (* -1)
+                       sign = case intToMod {n=1} (finToInteger r + finToInteger c) of
+                                   MkMod2 (MkBits 0) => (* 1)  -- is even?
+                                   _                 => (* -1) -- is odd?
                     in sign minor
 
 
