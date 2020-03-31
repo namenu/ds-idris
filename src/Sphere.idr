@@ -1,7 +1,7 @@
 module Sphere
 
 import Tuple
-import Matrix
+import Mat4
 import Material
 
 %access public export

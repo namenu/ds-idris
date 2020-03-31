@@ -1,6 +1,6 @@
 module Transform
 
-import public Matrix
+import Mat4
 
 %access export
 

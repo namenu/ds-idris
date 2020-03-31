@@ -3,7 +3,7 @@ module Intersection
 import Ray
 import Tuple
 import Sphere
-import Matrix
+import Mat4
 
 public export
 record Intersection where

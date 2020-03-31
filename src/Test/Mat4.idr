@@ -1,7 +1,6 @@
-module Test.Matrix
+module Test.Mat4
 
-import Matrix
-import Data.Vect
+import Mat4
 
 %access export  -- to make the test functions visible
 
@@ -40,9 +39,9 @@ testDet = let m3 = [[1,2,6],[-5,8,-4],[2,6,4]]
                 assertEq "Test determinant 4x4" (det m4) (-4071.0)
 
 testInv : IO ()
-testInv = let m2 = [[8,-5,9,2],[7,5,6,1],[-6,0,9,6],[-3,0,-9,-4]]
-              m2_expect = [[-0.15385, -0.15385, -0.28205, -0.53846 ],
-                           [-0.07692,  0.12308,  0.02564,  0.03077 ],
-                           [ 0.35897,  0.35897,  0.43590,  0.92308 ],
-                           [-0.69231, -0.69231, -0.76923, -1.92308 ]]
-           in assert "Test inverse" $ eq 0.00001 (inverse m2) m2_expect
+testInv = let m = [[8,-5,9,2],[7,5,6,1],[-6,0,9,6],[-3,0,-9,-4]]
+              expect = [[-0.15385, -0.15385, -0.28205, -0.53846 ],
+                        [-0.07692,  0.12308,  0.02564,  0.03077 ],
+                        [ 0.35897,  0.35897,  0.43590,  0.92308 ],
+                        [-0.69231, -0.69231, -0.76923, -1.92308 ]]
+           in assert "Test inverse" $ eq (inverse m) expect

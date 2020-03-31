@@ -1,7 +1,7 @@
 module Ray
 
 import Tuple
-import Matrix
+import Mat4
 
 %access export
 

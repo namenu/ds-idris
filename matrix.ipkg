@@ -2,20 +2,21 @@ package matrix
 
 sourcedir = src
 
-modules = Canvas
+modules = Data.Matrix
+        , Canvas
         , Color
         , Intersection
         , Light
+        , Mat4
         , Material
-        , Matrix
         , Ray
         , Sphere
         , Transform
         , Tuple
 
-{-
-tests = Test.Matrix.testDet
-      , Test.Matrix.testInv
--}
+        , Test.Mat4
+
+tests = Test.Mat4.testDet
+      , Test.Mat4.testInv
 
 opts = "-p contrib"

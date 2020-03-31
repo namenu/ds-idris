@@ -78,17 +78,18 @@ invertible : (Ord a, Neg a) => a -> Matrix (2 + n) (2 + n) a -> Bool
 invertible eps m = det m >= eps
 
 -- private
-inv2 : (Ord a, Neg a, Fractional a) => a -> Matrix 2 2 a -> Maybe (Matrix 2 2 a)
+inv2 : (Ord a, Neg a, Abs a, Fractional a) => a -> Matrix 2 2 a -> Maybe (Matrix 2 2 a)
 inv2 eps m@[[a00, a01], [a10, a11]]
   = let d = det m
-     in case compare d eps of
+     in case compare (abs d) eps of
              LT => Nothing
              _  => Just [[a00/d, a01/d], [a10/d, a11/d]]
 
-inverse : (Ord a, Neg a, Fractional a) => a -> Matrix (2 + n) (2 + n) a -> Maybe (Matrix (2 + n) (2 + n) a)
+||| no builtin inteferface for matrix algebra so...
+inverse : (Ord a, Neg a, Abs a, Fractional a) => a -> Matrix (2 + n) (2 + n) a -> Maybe (Matrix (2 + n) (2 + n) a)
 inverse eps {n=Z}     m = inv2 eps m
 inverse eps {n=(S k)} m = let d = det m
-                           in case compare d eps of
+                           in case compare (abs d) eps of
                                    LT => Nothing
                                    _  => Just (map (\(i, row) =>
                                                  map (\(j, v) => let c = cofactor j i m
