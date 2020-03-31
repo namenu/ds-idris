@@ -55,7 +55,7 @@ submatrix r c = deleteRow r . deleteCol c
     deleteCol c = map (deleteAt c)
 
 
-private
+-- private
 det2 : Neg a => Matrix 2 2 a -> a
 det2 [[a, b], [c, d]] = a * d - b * c
 
@@ -63,9 +63,8 @@ det2 [[a, b], [c, d]] = a * d - b * c
 mutual
   ||| determinant
   det : Neg a => Matrix (2 + n) (2 + n) a -> a
-  det {n} m = case n of
-                   Z     => det2 m
-                   (S k) => sum $ map (\c => at 0 c m * cofactor 0 c m) $ indices (3 + k)
+  det {n=Z}     m = det2 m
+  det {n=(S k)} m = sum $ map (\c => at 0 c m * cofactor 0 c m) $ indices (3 + k)
 
   cofactor : Neg a => Fin (3 + n) -> Fin (3 + n) -> Matrix (3 + n) (3 + n) a -> a
   cofactor r c m = let minor = det (submatrix r c m)
@@ -75,5 +74,24 @@ mutual
                     in sign minor
 
 
-invertible : Double -> Matrix (S (S n)) (S (S n)) Double -> Bool
+invertible : (Ord a, Neg a) => a -> Matrix (2 + n) (2 + n) a -> Bool
 invertible eps m = det m >= eps
+
+-- private
+inv2 : (Ord a, Neg a, Fractional a) => a -> Matrix 2 2 a -> Maybe (Matrix 2 2 a)
+inv2 eps m@[[a00, a01], [a10, a11]]
+  = let d = det m
+     in case compare d eps of
+             LT => Nothing
+             _  => Just [[a00/d, a01/d], [a10/d, a11/d]]
+
+inverse : (Ord a, Neg a, Fractional a) => a -> Matrix (2 + n) (2 + n) a -> Maybe (Matrix (2 + n) (2 + n) a)
+inverse eps {n=Z}     m = inv2 eps m
+inverse eps {n=(S k)} m = let d = det m
+                           in case compare d eps of
+                                   LT => Nothing
+                                   _  => Just (map (\(i, row) =>
+                                                 map (\(j, v) => let c = cofactor j i m
+                                                                  in c / d)
+                                                 (zipi row))
+                                               (zipi m))

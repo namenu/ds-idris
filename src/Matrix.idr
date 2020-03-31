@@ -1,6 +1,7 @@
 module Matrix
 
 import public Data.Matrix
+import Const
 import Tuple
 
 %access public export
@@ -9,15 +10,8 @@ import Tuple
 Mat4 : Type
 Mat4 = Matrix 4 4 Double
 
--- TODO: handle not invertible case
--- TODO: make it work for any size
-inverse : Mat4 -> Mat4
-inverse m = let d = det m
-             in map (\(i, row) =>
-                  map (\(j, v) => let c = cofactor j i m
-                                   in c / d)
-                  (zipi row))
-                (zipi m)
+inv4 : Mat4 -> Maybe Mat4
+inv4 = inverse ε
 
 
 identity : Mat4
