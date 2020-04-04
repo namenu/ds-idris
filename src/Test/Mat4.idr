@@ -33,9 +33,11 @@ m3 : Matrix 3 3 Double
 m3 = [[1,2,6],[-5,8,-4],[2,6,4]]
 
 testDet : IO ()
-testDet = let m3 = [[1,2,6],[-5,8,-4],[2,6,4]]
+testDet = let m2 = [[1,5],[-3,2]]
+              m3 = [[1,2,6],[-5,8,-4],[2,6,4]]
               m4 = [[-2,-8,3,5],[-3,1,7,3],[1,2,-9,6],[-6,7,7,-9]]
-          in do assertEq "Test determinant 3x3" (det m3) (-196.0)
+          in do assertEq "Test determinant 2x2" (det m2) 17.0
+                assertEq "Test determinant 3x3" (det m3) (-196.0)
                 assertEq "Test determinant 4x4" (det m4) (-4071.0)
 
 testInv : IO ()

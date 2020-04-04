@@ -50,23 +50,6 @@ infixl 9 *.
           (.) [ax, ay, az, aw] (MkTuple bx by bz bw) = ax * bx + ay * by + az * bz + aw * bw
 
 
--- test
-
 eq : Matrix n m Double -> Matrix n m Double -> Bool
 eq a b = let zs = zipWith (\l, r => abs (l - r)) (concat a) (concat b)
               in not $ elemBy (<) ε zs
-
-m1 : Mat4
-m1 = [[1,2,3,4],[5,6,7,8],[9,8,7,6],[5,4,3,2]]
-
-m2 : Mat4
-m2 = [[8,-5,9,2],[7,5,6,1],[-6,0,9,6],[-3,0,-9,-4]]
-
-m3 : Matrix 2 2 Double
-m3 = [[1, 2], [3,4]]
-
-m2_expect : Mat4
-m2_expect = [[-0.15385, -0.15385, -0.28205, -0.53846 ],
-             [-0.07692,  0.12308,  0.02564,  0.03077 ],
-             [ 0.35897,  0.35897,  0.43590,  0.92308 ],
-             [-0.69231, -0.69231, -0.76923, -1.92308 ]]

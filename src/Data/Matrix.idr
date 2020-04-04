@@ -83,7 +83,7 @@ inv2 eps m@[[a00, a01], [a10, a11]]
   = let d = det m
      in case compare (abs d) eps of
              LT => Nothing
-             _  => Just [[a00/d, a01/d], [a10/d, a11/d]]
+             _  => Just [[a11/d, -a01/d], [-a10/d, a00/d]]
 
 ||| no builtin inteferface for matrix algebra so...
 inverse : (Ord a, Neg a, Abs a, Fractional a) => a -> Matrix (2 + n) (2 + n) a -> Maybe (Matrix (2 + n) (2 + n) a)
