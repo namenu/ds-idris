@@ -5,6 +5,8 @@ import Tuple
 import Sphere
 import Mat4
 
+%access export
+
 public export
 record Intersection where
   constructor MkIntersection
@@ -12,12 +14,11 @@ record Intersection where
   obj : Sphere
 
 
-export
-intersect : Ray -> Sphere -> Maybe (Intersection, Intersection)
+intersect : Ray -> Sphere -> List Intersection
 intersect r s = let ray2 = transform (inverse (transform s)) r
                  in intersectRev ray2
                     where
-                      intersectRev : Ray -> Maybe (Intersection, Intersection)
+                      intersectRev : Ray -> List Intersection
                       intersectRev (MkRay r_origin r_direction) =
                         let sphere_to_ray = r_origin <-> point 0 0 0
 
@@ -26,7 +27,10 @@ intersect r s = let ray2 = transform (inverse (transform s)) r
                             c = dot sphere_to_ray sphere_to_ray - 1
 
                             d = the Double (b * b - (4 * a * c))
-                         in if d < 0 then Nothing
+                         in if d < 0 then []
                                      else let t1 = (-b - sqrt d) / (2 * a)
                                               t2 = (-b + sqrt d) / (2 * a)
-                                           in Just (MkIntersection t1 s, MkIntersection t2 s)
+                                           in [MkIntersection t1 s, MkIntersection t2 s]
+
+hit : List Intersection -> Maybe Intersection
+hit xs = find (\x => t x >= 0) xs

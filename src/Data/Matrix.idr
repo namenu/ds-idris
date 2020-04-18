@@ -1,21 +1,12 @@
 module Data.Matrix
 
 import public Data.Vect
+import Data.VectUtils
 import Data.Mod2
 import Data.Bits
 
 %default total
 %access public export
-
-
--- Vect helpers
-
-indices : (n : Nat) -> Vect n (Fin n)
-indices Z = []
-indices (S k) = FZ :: (map FS $ indices k)
-
-zipi : Vect n a -> Vect n (Fin n, a)
-zipi {n} m = zip (indices n) m
 
 
 -- Constructor
