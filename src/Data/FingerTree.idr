@@ -1,190 +1,205 @@
+module Data.FingerTree
+
+--%default total
 
 |||  An intermediate node in a 2-3 tree, parameterized
 ||| based on the type of its child.
-data Node a = Branch3 a a a
-            | Branch2 a a
+data Node v a = Node2 v a a
+              | Node3 v a a a
 
-||| Parameteraize the affix by the type fo data it stores.
-||| THis is equivalent to lists of length 1 to 4.
-data Affix a = One a
+||| Parameteraize the digit by the type fo data it stores.
+||| This is equivalent to lists of length 1 to 4.
+data Digit a = One a
              | Two a a
              | Three a a a
              | Four a a a a
 
-||| As usual, the type parameter represents what type
-||| of data is stored in this finger tree.
-data FingerTree : a -> Type where
-  Empty : FingerTree a
-  Single : a -> FingerTree a
-  Deep : (prefix : Affix a) ->
-         (deeper : FingerTree (Node a)) ->
-         (suffix : Affix a) ->
-         FingerTree a
+implementation Foldable Digit where
+  foldr f acc (One x) = f x acc
+  foldr f acc (Two x y) = f x (f y acc)
+  foldr f acc (Three x y z) = f x (f y (f z acc))
+  foldr f acc (Four x y z w) = f x (f y (f z (f w acc)))
 
-implementation Show a => Show (Node a) where
-  show (Branch3 x y z) = show (x, y, z)
-  show (Branch2 x y) = show (x, y)
-
-implementation Show a => Show (Affix a) where
-  show (One x) = show (x)
-  show (Two x y) = show (x, y)
-  show (Three x y z) = show (x, y, z)
-  show (Four x y z w) = show (x, y, z, w)
-
-implementation Show a => Show (FingerTree a) where
-  show Empty = "empty"
-  show (Single x) = "single: " ++ show x
-  show (Deep prefix deeper suffix) = "prefix: " ++ show prefix ++
-                                     " deep: " ++ show deeper ++
-                                     " suffix: " ++ show suffix
+  foldl f acc (One x) = f acc x
+  foldl f acc (Two x y) = f (f acc x) y
+  foldl f acc (Three x y z) = f (f (f acc x) y) z
+  foldl f acc (Four x y z w) = f (f (f (f acc x) y) z) w
 
 
-affixPrepend : a -> Affix a -> Affix a
-affixPrepend x (One y) = Two x y
-affixPrepend x (Two y z) = Three x y z
-affixPrepend x (Three y z w) = Four x y z w
-affixPrepend x (Four y z w s) = ?appendPrefix_rhs_4
+digitToList : Digit a -> List a
+digitToList (One x) = [x]
+digitToList (Two x y) = [x, y]
+digitToList (Three x y z) = [x, y, z]
+digitToList (Four x y z w) = [x, y, z, w]
 
-affixAppend : a -> Affix a -> Affix a
-affixAppend x (One y) = Two y x
-affixAppend x (Two y z) = Three y z x
-affixAppend x (Three y z w) = Four y z w x
+digitFirst : Digit a -> (a, Digit a)
+--digitFirst (One x) = ?no
+digitFirst (Two x y) = (x, One y)
+digitFirst (Three x y z) = (x, Two y z)
+digitFirst (Four x y z w) = (x, Three y z w)
 
-affixToList : Affix a -> List a
-affixToList (One x) = [x]
-affixToList (Two x y) = [x, y]
-affixToList (Three x y z) = [x, y, z]
-affixToList (Four x y z w) = [x, y, z, w]
+digitLast : Digit a -> (a, Digit a)
+--digitLast (One x) = ?rhs
+digitLast (Two x y) = (y, One x)
+digitLast (Three x y z) = (z, Two x y)
+digitLast (Four x y z w) = (w, Three x y z)
 
+nodeToDigit : Node v a -> Digit a
+nodeToDigit (Node2 _ x y) = Two x y
+nodeToDigit (Node3 _ x y z) = Three x y z
+
+
+--
+-- fromList : List a -> FingerTree a
+-- fromList = foldr (<|) Empty
+--
+-- toList : FingerTree a -> List a
+-- toList tree = case viewl tree of
+--                    Nil => []
+--                    Cons x xs => x :: toList xs
+
+
+-- Measurements
+interface Monoid v => Measured a v where
+  measure : a -> v
+
+
+implementation Measured a v => Measured (Digit a) v where
+  measure = concatMap measure
+
+
+-- Caching measurements
+implementation Measured a v => Measured (Node v a) v where
+  measure (Node2 v _ _) = v
+  measure (Node3 v _ _ _) = v
+
+node2 : Measured a v => a -> a -> Node v a
+node2 x y = Node2 (measure x <+> measure y) x y
+
+node3 : Measured a v => a -> a -> a -> Node v a
+node3 x y z = Node3 (measure x <+> measure y <+> measure z) x y z
+
+
+
+data FingerTree v a = Empty
+                    | Single a
+                    | Deep v (Digit a) (FingerTree v (Node v a)) (Digit a)
+
+implementation Measured a v => Measured (FingerTree v a) v where
+  measure Empty = neutral
+  measure (Single x) = measure x
+  measure (Deep v _ _ _) = v
+
+deep : Measured a v => Digit a -> FingerTree v (Node v a) -> Digit a -> FingerTree v a
+deep pr m sf = Deep (measure pr <+> measure m <+> measure sf) pr m sf
+
+
+digitToTree : Measured a v => Digit a -> FingerTree v a
+digitToTree (One x) = Single x
+digitToTree (Two x y) = deep (One x) Empty (One y)
+digitToTree (Three x y z) = deep (Two x y) Empty (One z)
+digitToTree (Four x y z w) = deep (Two x y) Empty (Two z w)
+-- digitToTree = foldl <: Empty
+
+
+----------
+-- 4.3 Construction, deconstruction and concatenation
+----------
 
 -- User <| to prepend. It's the finger tree analogue of : for lists.
 infixr 5 <|
-(<|) : a -> FingerTree a -> FingerTree a
-
-x <| Empty = Single x
-x <| (Single y) = Deep (One x) Empty (One y)
-x <| (Deep (Four y z w s) deeper suffix) = let node = Branch3 z w s
-                                            in Deep (Two x y) (node <| deeper) suffix
-x <| (Deep prefix deeper suffix) = Deep (affixPrepend x prefix) deeper suffix
+(<|) : Measured a v => a -> FingerTree v a -> FingerTree v a
+a <| Empty = Single a
+a <| (Single b) = deep (One a) Empty (One b)
+a <| (Deep v pr m sf) =
+  case pr of
+       One b        => Deep (measure a <+> v) (Two a b) m sf
+       Two b c      => Deep (measure a <+> v) (Three a b c) m sf
+       Three b c d  => Deep (measure a <+> v) (Four a b c d) m sf
+       Four b c d e => Deep (measure a <+> v) (Two a b) (node3 c d e <| m) sf
 
 
 infixl 5 |>
-(|>) : FingerTree a -> a -> FingerTree a
-
-Empty |> y = Single y
-(Single x) |> y = Deep (One x) Empty (One y)
-(Deep prefix deeper (Four e d c b)) |> a = let node = Branch3 e d c
-                                            in Deep prefix (deeper |> node) (Two b a)
-(Deep prefix deeper suffix) |> y = Deep prefix deeper (affixAppend y suffix)
-
-
-
-affixFirst : Affix a -> (a, Affix a)
-affixFirst (One x) = ?rhs
-affixFirst (Two x y) = (x, One y)
-affixFirst (Three x y z) = (x, Two y z)
-affixFirst (Four x y z w) = (x, Three y z w)
-
-affixLast : Affix a -> (a, Affix a)
-affixLast (One x) = ?rhs
-affixLast (Two x y) = (y, One x)
-affixLast (Three x y z) = (z, Two x y)
-affixLast (Four x y z w) = (w, Three x y z)
+(|>) : Measured a v => FingerTree v a -> a -> FingerTree v a
+Empty |> a = Single a
+(Single b) |> a = deep (One b) Empty (One a)
+(Deep v pr m sf) |> a =
+  case pr of
+       One b        => Deep (v <+> measure a) pr m (Two b a)
+       Two c b      => Deep (v <+> measure a) pr m (Three c b a)
+       Three d c b  => Deep (v <+> measure a) pr m (Four d c b a)
+       Four e d c b => Deep (v <+> measure a) pr (m |> node3 e d c) (Two b a)
 
 
-data View a = Nil | Cons a (FingerTree a)
+data View : (Type -> Type) -> Type -> Type where
+  Nil : View s a
+  Cons : a -> s a -> View s a
 
-nodeToAffix : Node a -> Affix a
-nodeToAffix (Branch3 x y z) = Three x y z
-nodeToAffix (Branch2 x y) = Two x y
-
-
-viewl : FingerTree a -> View a
+viewl : Measured a v => FingerTree v a -> View (FingerTree v) a
 viewl Empty = Nil
 viewl (Single x) = Cons x Empty
-viewl (Deep (One x) deeper suffix)
-  = let rest = case viewl deeper of
-                    Cons node rest' => Deep (nodeToAffix node) rest' suffix
-                    Nil => case suffix of
-                                One x => Single x
-                                Two x y => Deep (One x) Empty (One y)
-                                Three x y z => Deep (Two x y) Empty (One z)
-                                Four x y z w => Deep (Three x y z) Empty (One w)
+viewl (Deep _ (One x) m sf)
+  = let rest = case viewl m of
+                    Nil => digitToTree sf
+                    Cons node m' => deep (nodeToDigit node) m' sf
      in Cons x rest
-viewl (Deep prefix deeper suffix)
-  = let (first, rest) = affixFirst prefix
-     in Cons first (Deep rest deeper suffix)
+viewl (Deep _ pr m sf)
+  = let (head, tail) = digitFirst pr
+     in Cons head (deep tail m sf)
 
-
-viewr : FingerTree a -> View a
+viewr : Measured a v => FingerTree v a -> View (FingerTree v) a
 viewr Empty = Nil
 viewr (Single x) = Cons x Empty
-viewr (Deep prefix deeper (One x))
-  = let rest = case viewr deeper of
-                    Cons node rest' => Deep prefix rest' (nodeToAffix node)
-                    Nil => case prefix of
-                                One x => Single x
-                                Two x y => Deep (One x) Empty (One y)
-                                Three x y z => Deep (One x) Empty (Two y z)
-                                Four x y z w => Deep (One x) Empty (Three y z w)
+viewr (Deep _ pr m (One x))
+  = let rest = case viewr m of
+                    Nil => digitToTree pr
+                    Cons node m' => deep pr m' (nodeToDigit node)
      in Cons x rest
-viewr (Deep prefix deeper suffix)
-  = let (last, rest) = affixLast suffix
-     in Cons last (Deep prefix deeper rest)
+viewr (Deep _ prefix deeper suffix)
+  = let (last, rest) = digitLast suffix
+     in Cons last (deep prefix deeper rest)
 
 
-fromList : List a -> FingerTree a
-fromList = foldr (<|) Empty
 
-toList : FingerTree a -> List a
-toList tree = case viewl tree of
-                   Nil => []
-                   Cons x xs => x :: toList xs
-
-
----
--- Concatenation
-
-nodes : List a -> List (Node a)
-nodes xs = case xs of
-                [] => ?nodes_rhs_1
-                [x] => ?nodes_rhs_2
-                [x, y] => [Branch2 x y]
-                [x, y, z] => [Branch3 x y z]
-                (x :: y :: rest) => Branch2 x y :: nodes rest
+nodes : Measured a v => List a -> List (Node v a)
+nodes [a, b] = [node2 a b]
+nodes [a, b, c] = [node3 a b c]
+nodes [a, b, c, d] = [node2 a b, node2 c d]
+nodes (a :: b :: c :: xs') = node3 a b c :: nodes xs'
 
 
-concatWithMiddle : FingerTree a -> List a -> FingerTree a -> FingerTree a
-concatWithMiddle Empty [] right = right
-concatWithMiddle Empty (x :: xs) right = x <| concatWithMiddle Empty xs right
-concatWithMiddle (Single y) xs right = y <| concatWithMiddle Empty xs right
-
-concatWithMiddle left [] Empty = left
-concatWithMiddle left xs@(_::_) Empty = concatWithMiddle left (init xs) Empty |> last xs
-concatWithMiddle left xs (Single y) = concatWithMiddle left xs Empty |> y
-
-concatWithMiddle (Deep prefixl deeperl suffixl) mid (Deep prefixr deeperr suffixr)
-  = let mid' = nodes $ (affixToList suffixl) ++ mid ++ (affixToList prefixr)
-        deeper' = concatWithMiddle deeperl mid' deeperr
-     in Deep prefixl deeper' suffixr
-
+app3 : Measured a v => FingerTree v a -> List a -> FingerTree v a -> FingerTree v a
+app3 Empty [] right = right
+app3 Empty (x :: xs) right = x <| app3 Empty xs right
+app3 (Single y) xs right = y <| app3 Empty xs right
+app3 left [] Empty = left
+app3 left xs@(_::_) Empty = app3 left (init xs) Empty |> last xs
+app3 left xs (Single y) = app3 left xs Empty |> y
+app3 (Deep v1 pr1 m1 sf1) ts (Deep v2 pr2 m2 sf2)
+  = let ts' = nodes $ (digitToList sf1) ++ ts ++ (digitToList pr2)
+     in deep pr1 (app3 m1 ts' m2) sf2
 
 infix 5 ><
-(><) : {a : Type} -> FingerTree a -> FingerTree a -> FingerTree a
-left >< right = concatWithMiddle left [] right
+(><) : Measured a v => FingerTree v a -> FingerTree v a -> FingerTree v a
+left >< right = app3 left [] right
 
+implementation Measured a v => Semigroup (FingerTree v a) where
+  (<+>) = (><)
+
+implementation Measured a v => Monoid (FingerTree v a) where
+  neutral = Empty
 
 {-
 
 foo : Node Char
-foo = Branch3 'n' 'o' 't'
+foo = Node3 'n' 'o' 't'
 
 layer3 : FingerTree a
 layer3 = Empty
 
 layer2 : FingerTree (Node Char)
-layer2 = let prefix = Two (Branch2 'i' 's') (Branch2 'i' 's')
-             suffix = Two (Branch3 'n' 'o' 't') (Branch2 'a' 't')
+layer2 = let prefix = Two (Node2 'i' 's') (Node2 'i' 's')
+             suffix = Two (Node3 'n' 'o' 't') (Node2 'a' 't')
           in Deep prefix layer3 suffix
 
 layer1 : FingerTree Char
